@@ -2,7 +2,7 @@
  * @Author: zero-extend 3312154119@qq.com
  * @Date: 2026-09-21 18:26:58
  * @LastEditors: zero-extend 3312154119@qq.com
- * @LastEditTime: 2026-10-23 22:20:46
+ * @LastEditTime: 2026-10-24 22:31:45
  * @FilePath: /cachelab-handout/csim.c
  * @Description: 
  * 
@@ -40,6 +40,7 @@ typedef struct cache_line
 
 
 
+
 cache_line** pointer = NULL;
 
 void cache_init(int Set_count,int E);
@@ -48,13 +49,27 @@ void access_cache(unsigned long address);
 
 void cache_init(int Set_count,int E){
 
+    cache_line init_line;
+    init_line.LRU_time = 0;
+    init_line.Tag = 0;
+    init_line.valid = 0;
+
     /**  1.malloc place for cache Set-arr */
     pointer = malloc(sizeof(cache_line*)*Set_count);
-    
+
+
     for (int i = 0; i < Set_count; i++)
     {
         /** 2.malloc place for cache line */      
         pointer[i] = malloc(sizeof(cache_line)*E);
+
+
+        /** clean the space */
+        for (int j = 0; j < E; j++)
+        {
+              pointer[i][j] = init_line;  // clean the space by using init_cache
+        }
+        
     }
     
 }
@@ -74,7 +89,8 @@ void access_cache(unsigned long address){
     /** min_LRu */
     int min_LRUindex = 0;
 
-    time++;
+
+    time++; // main time ++
     
     for (int i = 0; i < E; i++)
     {
@@ -95,10 +111,13 @@ void access_cache(unsigned long address){
         }
 
         /** find the smallest LRU index */
-        if (pointer[a2][i].LRU_time < pointer[a2][min_LRUindex].LRU_time)
+        /** don't need check valid ,because all cache_line is work and valid eaquls 1 when need to use LRU */
+            if (pointer[a2][i].LRU_time < pointer[a2][min_LRUindex].LRU_time)
         {
             min_LRUindex = i;
         }
+
+        
         
         
     }
@@ -166,13 +185,14 @@ int main(int argc,char **argv)
     }
 
         Set_count = 1u << s;
-        if (Set_count == 1)
+/**        if s = 0,set_Count can equal 1
+         if (Set_count == 1)
         {
             return -1;
         }
         cache_init(Set_count,E);
     
-
+*/
         
         FILE *fp = fopen(t,"r");
         char arr[512] = {0};
